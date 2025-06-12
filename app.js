@@ -550,17 +550,23 @@ function updateReminders(measurements) {
   const now = new Date();
   for (const key in testFrequencies) {
     const li = document.createElement('li');
+    li.classList.add('col-span-1');
     const lastDate = lastDates[key];
     const freq = testFrequencies[key];
     let text;
     if (!lastDate) {
       text = `${testLabels[key]}: test today`;
+      li.classList.add('text-green-600', 'font-semibold');
     } else {
       const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
       const daysLeft = freq - daysSince;
-      text = daysLeft <= 0 ?
-        `${testLabels[key]}: test today` :
-        `${testLabels[key]}: in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`;
+      if (daysLeft <= 0) {
+        text = `${testLabels[key]}: test today`;
+        li.classList.add('text-green-600', 'font-semibold');
+      } else {
+        text = `${testLabels[key]}: in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`;
+        li.classList.add('text-black');
+      }
     }
     li.textContent = text;
     reminderList.appendChild(li);
