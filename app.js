@@ -190,6 +190,7 @@ async function loadAquariums(uid, selectId = null) {
 
   if (!firstId) {
     const docRef = await addDoc(collection(db, `users/${uid}/aquariums`), { name: 'My Aquarium' });
+    await setDoc(doc(db, `users/${uid}/aquariums/${docRef.id}/measurements`, 'init'), { init: true, timestamp: new Date() });
     firstId = docRef.id;
     const opt = document.createElement('option');
     opt.value = firstId;
