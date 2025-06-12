@@ -46,8 +46,7 @@ const extraRegisterFields = document.getElementById('extra-register-fields');
 const aquariumSelect = document.getElementById('aquarium-select');
 const addAquariumBtn = document.getElementById('add-aquarium');
 const deleteAquariumBtn = document.getElementById('delete-aquarium');
-const newAquariumInput = document.getElementById('new-aquarium-name');
-const saveAquariumBtn = document.getElementById('save-aquarium');
+const aquariumMenu = document.getElementById('aquarium-menu');
 
 let isRegister = false;
 let currentUserData = null;
@@ -201,12 +200,15 @@ async function loadAquariums(uid, selectId = null) {
   const snapshot = await getDocs(collection(db, `users/${uid}/aquariums`));
   aquariumSelect.innerHTML = '';
   let firstId = null;
+  const list = [];
   snapshot.forEach((docSnap) => {
+    const name = docSnap.data().name || 'Unnamed';
     const opt = document.createElement('option');
     opt.value = docSnap.id;
-    opt.textContent = docSnap.data().name || 'Unnamed';
+    opt.textContent = name;
     aquariumSelect.appendChild(opt);
     if (!firstId) firstId = docSnap.id;
+    list.push({ id: docSnap.id, name });
   });
 
   if (!firstId) {
@@ -217,13 +219,41 @@ async function loadAquariums(uid, selectId = null) {
     opt.value = firstId;
     opt.textContent = 'My Aquarium';
     aquariumSelect.appendChild(opt);
+    list.push({ id: firstId, name: 'My Aquarium' });
   }
 
   const selected = selectId || firstId;
   aquariumSelect.value = selected;
   currentAquariumId = selected;
   deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
+  updateAquariumMenuButtons(list);
   loadData(uid);
+}
+
+function updateAquariumMenuButtons(list = null) {
+  if (!aquariumMenu) return;
+  if (!list) {
+    list = Array.from(aquariumSelect.options).map(o => ({ id: o.value, name: o.textContent }));
+  }
+  aquariumMenu.innerHTML = '';
+  if (list.length === 0) {
+    aquariumMenu.classList.add('hidden');
+    return;
+  }
+  aquariumMenu.classList.remove('hidden');
+  list.slice(0, 3).forEach(aq => {
+    const btn = document.createElement('button');
+    btn.textContent = aq.name;
+    if (aq.id === currentAquariumId) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      aquariumSelect.value = aq.id;
+      currentAquariumId = aq.id;
+      const user = auth.currentUser;
+      if (user) loadData(user.uid);
+      updateAquariumMenuButtons(list);
+    });
+    aquariumMenu.appendChild(btn);
+  });
 }
 
 function parseNumber(value) {
@@ -584,38 +614,18 @@ aquariumSelect.addEventListener('change', () => {
   const user = auth.currentUser;
   if (user) loadData(user.uid);
   deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
+  updateAquariumMenuButtons();
 });
 
-addAquariumBtn.addEventListener('click', () => {
-  newAquariumInput.classList.toggle('hidden');
-  saveAquariumBtn.classList.toggle('hidden');
-  if (!newAquariumInput.classList.contains('hidden')) {
-    newAquariumInput.focus();
-  }
-});
-
-saveAquariumBtn.addEventListener('click', async () => {
+addAquariumBtn.addEventListener('click', async () => {
   const user = auth.currentUser;
   if (!user) return;
-  const name = newAquariumInput.value.trim();
+  const name = prompt('Aquarium name');
   if (!name) return;
   try {
     const docRef = await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
     await setDoc(doc(db, `users/${user.uid}/aquariums/${docRef.id}/measurements`, 'init'), { init: true, timestamp: new Date() });
-
-    const opt = document.createElement('option');
-    opt.value = docRef.id;
-    opt.textContent = name;
-    aquariumSelect.appendChild(opt);
-    aquariumSelect.value = docRef.id;
-    currentAquariumId = docRef.id;
-    deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
-
-    newAquariumInput.value = '';
-    newAquariumInput.classList.add('hidden');
-    saveAquariumBtn.classList.add('hidden');
-
-    loadData(user.uid);
+    loadAquariums(user.uid, docRef.id);
   } catch (err) {
     alert('Failed to add aquarium: ' + err.message);
   }
