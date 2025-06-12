@@ -173,6 +173,27 @@ const aiAdviceText = document.getElementById('ai-advice-text');
 const aiStatusArrow = document.getElementById('ai-status-arrow');
 const aiStatusIcon = document.getElementById('ai-status-icon');
 const aiStatusMeter = document.getElementById('ai-status-meter');
+const reminderList = document.getElementById('reminder-list');
+
+const testFrequencies = {
+  ph: 7,
+  gh: 30,
+  kh: 14,
+  chlorine: 7,
+  nitrite: 7,
+  nitrate: 7,
+  fe2: 7
+};
+
+const testLabels = {
+  ph: 'pH',
+  gh: 'GH',
+  kh: 'KH',
+  chlorine: 'Chlorine',
+  nitrite: 'Nitrite',
+  nitrate: 'Nitrate',
+  fe2: 'Fe2'
+};
 
 let chartMain = null;
 
@@ -359,6 +380,8 @@ async function loadData(uid) {
   const co2Data = [];
   const filter = filterDate.value;
 
+  const reminderData = [];
+
   let firstMeasurement = null;
 
   querySnapshot.forEach((docSnapshot, index) => {
@@ -370,6 +393,8 @@ async function loadData(uid) {
     if (filter && filter !== dateStr) return;
 
     if (!firstMeasurement) firstMeasurement = d;
+
+    reminderData.push(d);
 
     labels.push(date.toLocaleDateString());
     phData.push(typeof d.ph === 'number' && !isNaN(d.ph) ? d.ph : null);
@@ -446,6 +471,8 @@ async function loadData(uid) {
     { label: 'Fe2 (mg/L)', data: fe2Data, color: 'rgba(139, 92, 246, 1)' },
     { label: 'CO₂ (mg/L)', data: co2Data, color: 'rgba(16, 185, 129, 1)' }
   ]);
+
+  updateReminders(reminderData);
 }
 
 function updateOrCreateChart(labels, datasets) {
@@ -505,6 +532,39 @@ function showAIReport(measurement) {
   aiStatusIcon.className = severity === 2 ? 'my-3 text-4xl text-red-600' :
                           severity === 1 ? 'my-3 text-4xl text-yellow-600' :
                                            'my-3 text-4xl text-green-600';
+}
+
+function updateReminders(measurements) {
+  if (!reminderList) return;
+  const lastDates = {};
+  measurements.forEach((m) => {
+    const ts = m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp);
+    for (const key in testFrequencies) {
+      if (!lastDates[key] && m[key] !== null && !isNaN(m[key])) {
+        lastDates[key] = ts;
+      }
+    }
+  });
+
+  reminderList.innerHTML = '';
+  const now = new Date();
+  for (const key in testFrequencies) {
+    const li = document.createElement('li');
+    const lastDate = lastDates[key];
+    const freq = testFrequencies[key];
+    let text;
+    if (!lastDate) {
+      text = `${testLabels[key]}: test today`;
+    } else {
+      const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+      const daysLeft = freq - daysSince;
+      text = daysLeft <= 0 ?
+        `${testLabels[key]}: test today` :
+        `${testLabels[key]}: in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`;
+    }
+    li.textContent = text;
+    reminderList.appendChild(li);
+  }
 }
 
 
