@@ -324,6 +324,10 @@
         max-width: 100% !important;
       }
 
+      #reminder-box {
+        max-width: 100% !important;
+      }
+
       #charts {
         flex-direction: column !important;
         gap: 1rem !important;
@@ -460,6 +464,11 @@
           <label for="filter-date" class="block mb-1 font-medium">Filter by date</label>
           <input type="date" id="filter-date" class="rounded-lg border border-blue-300 px-3 py-2 w-full text-sm" />
         </div>
+      </div>
+
+      <div id="reminder-box" class="bg-blue-50 rounded-xl p-4 text-sm text-blue-900 max-w-xl mx-auto mt-6">
+        <h3 class="text-lg font-semibold mb-2 text-blue-800">Testing Reminders</h3>
+        <ul id="reminder-list" class="space-y-1"></ul>
       </div>
 
       <div id="detail-view" class="mt-6 hidden bg-white p-4 rounded-xl shadow text-sm text-gray-900 max-w-xl mx-auto">
