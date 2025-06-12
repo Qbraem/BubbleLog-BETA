@@ -43,10 +43,14 @@ const profileDropdown = document.getElementById('profile-dropdown');
 const profileUsername = document.getElementById('profile-username');
 const contactDeveloper = document.getElementById('contact-developer');
 const extraRegisterFields = document.getElementById('extra-register-fields');
+const aquariumSelect = document.getElementById('aquarium-select');
+const addAquariumBtn = document.getElementById('add-aquarium');
+const deleteAquariumBtn = document.getElementById('delete-aquarium');
 
 let isRegister = false;
 let currentUserData = null;
 let lastMeasurement = null;
+let currentAquariumId = null;
 
 
 toggleLink.addEventListener('click', () => {
@@ -144,7 +148,7 @@ onAuthStateChanged(auth, async (user) => {
       if (profileUsername) profileUsername.textContent = user.email;
     }
 
-    loadData(user.uid);
+    loadAquariums(user.uid);
   } else {
     authContainer.classList.remove('hidden');
     dashboard.classList.add('hidden');
@@ -152,6 +156,7 @@ onAuthStateChanged(auth, async (user) => {
     if (profileUsername) profileUsername.textContent = '';
     currentUserData = null;
     lastMeasurement = null;
+    currentAquariumId = null;
   }
 });
 
@@ -168,6 +173,33 @@ const aiStatusIcon = document.getElementById('ai-status-icon');
 const aiStatusMeter = document.getElementById('ai-status-meter');
 
 let chartMain = null;
+
+async function loadAquariums(uid) {
+  const snapshot = await getDocs(collection(db, `users/${uid}/aquariums`));
+  aquariumSelect.innerHTML = '';
+  let firstId = null;
+  snapshot.forEach((docSnap) => {
+    const opt = document.createElement('option');
+    opt.value = docSnap.id;
+    opt.textContent = docSnap.data().name || 'Unnamed';
+    aquariumSelect.appendChild(opt);
+    if (!firstId) firstId = docSnap.id;
+  });
+
+  if (!firstId) {
+    const docRef = await addDoc(collection(db, `users/${uid}/aquariums`), { name: 'My Aquarium' });
+    firstId = docRef.id;
+    const opt = document.createElement('option');
+    opt.value = firstId;
+    opt.textContent = 'My Aquarium';
+    aquariumSelect.appendChild(opt);
+  }
+
+  aquariumSelect.value = firstId;
+  currentAquariumId = firstId;
+  deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
+  loadData(uid);
+}
 
 function parseNumber(value) {
   if (value === undefined || value === null) return null;
@@ -228,8 +260,13 @@ dataForm.addEventListener('submit', async (e) => {
 
   lastMeasurement = { ph, gh, kh, chlorine, nitrite, nitrate, fe2, co2 };
 
+  if (!currentAquariumId) {
+    alert('Please create an aquarium first.');
+    return;
+  }
+
   try {
-    await addDoc(collection(db, `users/${user.uid}/measurements`), {
+    await addDoc(collection(db, `users/${user.uid}/aquariums/${currentAquariumId}/measurements`), {
       timestamp: new Date(),
       ph, gh, kh, chlorine, nitrite, nitrate, fe2, co2
     });
@@ -303,7 +340,8 @@ function generateAdvice(ph, gh, kh, chlorine, nitrite, nitrate, co2) {
 
 async function loadData(uid) {
   historyList.innerHTML = '';
-  const q = query(collection(db, `users/${uid}/measurements`), orderBy('timestamp', 'desc'));
+  if (!currentAquariumId) return;
+  const q = query(collection(db, `users/${uid}/aquariums/${currentAquariumId}/measurements`), orderBy('timestamp', 'desc'));
   const querySnapshot = await getDocs(q);
 
   const labels = [];
@@ -367,7 +405,7 @@ async function loadData(uid) {
       ev.stopPropagation();
       if (confirm("Are you sure you want to delete this measurement?")) {
         try {
-          await deleteDoc(doc(db, `users/${uid}/measurements`, docId));
+          await deleteDoc(doc(db, `users/${uid}/aquariums/${currentAquariumId}/measurements`, docId));
           loadData(uid);
         } catch (error) {
           alert("Failed to delete: " + error.message);
@@ -468,6 +506,31 @@ function showAIReport(measurement) {
 filterDate.addEventListener('change', () => {
   const user = auth.currentUser;
   if (user) loadData(user.uid);
+});
+
+aquariumSelect.addEventListener('change', () => {
+  currentAquariumId = aquariumSelect.value;
+  const user = auth.currentUser;
+  if (user) loadData(user.uid);
+  deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
+});
+
+addAquariumBtn.addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const name = prompt('Aquarium name:');
+  if (!name) return;
+  await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
+  loadAquariums(user.uid);
+});
+
+deleteAquariumBtn.addEventListener('click', async () => {
+  const user = auth.currentUser;
+  if (!user || !currentAquariumId) return;
+  if (!confirm('Delete this aquarium?')) return;
+  await deleteDoc(doc(db, `users/${user.uid}/aquariums`, currentAquariumId));
+  currentAquariumId = null;
+  loadAquariums(user.uid);
 });
 
 

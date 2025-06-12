@@ -381,6 +381,12 @@
     <!-- Dashboard container -->
     <section id="dashboard" class="hidden bg-white rounded-2xl p-4">
       <h2 class="text-xl font-semibold mb-4 text-center text-blue-700">Your Measurements</h2>
+      <div id="aquarium-controls" class="flex items-center gap-2 mb-4">
+        <label for="aquarium-select" class="text-sm font-medium text-blue-900">Aquarium:</label>
+        <select id="aquarium-select" class="border border-blue-300 rounded px-2 py-1 flex-grow"></select>
+        <button id="add-aquarium" type="button" class="px-2 py-1 bg-blue-200 rounded-full text-blue-800">Add</button>
+        <button id="delete-aquarium" type="button" class="px-2 py-1 bg-red-200 rounded-full text-red-800 hidden">Delete</button>
+      </div>
       <form id="data-form" class="grid gap-3 mb-6" autocomplete="off" novalidate>
         <div class="grid grid-cols-2 gap-2 text-gray-700 text-xs font-semibold">
           <label for="ph" class="flex items-center gap-1"><span>pH</span><span>(unitless)</span></label>
