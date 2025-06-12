@@ -221,6 +221,13 @@
       color: #1e3a8a;
     }
 
+    @media (max-width: 600px) {
+      .aquarium-select {
+        font-size: 1rem;
+        padding-right: 2.5rem;
+      }
+    }
+
     /* Bubble animation */
     .bubble {
       animation: rise 6s infinite ease-in;
@@ -397,13 +404,13 @@
     <!-- Dashboard container -->
     <section id="dashboard" class="hidden bg-white rounded-2xl p-4">
       <h2 class="text-xl font-semibold mb-4 text-center text-blue-700">Your Measurements</h2>
-      <div id="aquarium-controls" class="flex items-center gap-2 mb-4">
-        <label for="aquarium-select" class="text-sm font-medium text-blue-900">Aquarium:</label>
-        <select id="aquarium-select" class="aquarium-select flex-grow"></select>
-        <button id="add-aquarium" type="button" class="px-2 py-1 bg-blue-200 rounded-full text-blue-800">Add</button>
-        <input id="new-aquarium-name" type="text" placeholder="Name" class="hidden border border-blue-300 rounded-full px-2 py-1 text-sm" />
-        <button id="save-aquarium" type="button" class="hidden px-2 py-1 bg-blue-200 rounded-full text-blue-800">Save</button>
-        <button id="delete-aquarium" type="button" class="px-2 py-1 bg-red-200 rounded-full text-red-800 hidden">Delete</button>
+      <div id="aquarium-controls" class="flex flex-col sm:flex-row flex-wrap items-center gap-2 mb-4">
+        <label for="aquarium-select" class="text-sm font-medium text-blue-900 w-full sm:w-auto">Aquarium:</label>
+        <select id="aquarium-select" class="aquarium-select w-full sm:flex-grow"></select>
+        <button id="add-aquarium" type="button" class="px-2 py-1 bg-blue-200 rounded-full text-blue-800 w-full sm:w-auto">Add</button>
+        <input id="new-aquarium-name" type="text" placeholder="Name" class="hidden border border-blue-300 rounded-full px-2 py-1 text-sm w-full sm:w-auto" />
+        <button id="save-aquarium" type="button" class="hidden px-2 py-1 bg-blue-200 rounded-full text-blue-800 w-full sm:w-auto">Save</button>
+        <button id="delete-aquarium" type="button" class="px-2 py-1 bg-red-200 rounded-full text-red-800 hidden w-full sm:w-auto">Delete</button>
       </div>
       <form id="data-form" class="grid gap-3 mb-6" autocomplete="off" novalidate>
         <div class="grid grid-cols-2 gap-2 text-gray-700 text-xs font-semibold">
