@@ -550,7 +550,7 @@ function updateReminders(measurements) {
   const now = new Date();
   for (const key in testFrequencies) {
     const li = document.createElement('li');
-    li.classList.add('col-span-1');
+    li.classList.add('col-span-1', 'glass', 'rounded-lg', 'px-2', 'py-1');
     const lastDate = lastDates[key];
     const freq = testFrequencies[key];
     let text;
