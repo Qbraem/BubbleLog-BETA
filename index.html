@@ -385,6 +385,17 @@
       background-color: #2563eb;
       color: white;
     }
+
+    /* Ensure login page text is white */
+    #auth-container,
+    #auth-container * {
+      color: white !important;
+    }
+    #auth-container input::placeholder,
+    #auth-container select::placeholder {
+      color: white !important;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
