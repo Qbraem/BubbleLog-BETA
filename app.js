@@ -46,6 +46,8 @@ const extraRegisterFields = document.getElementById('extra-register-fields');
 const aquariumSelect = document.getElementById('aquarium-select');
 const addAquariumBtn = document.getElementById('add-aquarium');
 const deleteAquariumBtn = document.getElementById('delete-aquarium');
+const newAquariumInput = document.getElementById('new-aquarium-name');
+const saveAquariumBtn = document.getElementById('save-aquarium');
 
 let isRegister = false;
 let currentUserData = null;
@@ -517,25 +519,39 @@ aquariumSelect.addEventListener('change', () => {
   deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
 });
 
-addAquariumBtn.addEventListener('click', async () => {
+addAquariumBtn.addEventListener('click', () => {
+  newAquariumInput.classList.toggle('hidden');
+  saveAquariumBtn.classList.toggle('hidden');
+  if (!newAquariumInput.classList.contains('hidden')) {
+    newAquariumInput.focus();
+  }
+});
+
+saveAquariumBtn.addEventListener('click', async () => {
   const user = auth.currentUser;
   if (!user) return;
-  const name = prompt('Aquarium name:');
+  const name = newAquariumInput.value.trim();
   if (!name) return;
-  const docRef = await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
-  // Initialize measurements subcollection so it exists immediately
-  await setDoc(doc(db, `users/${user.uid}/aquariums/${docRef.id}/measurements`, 'init'), { init: true, timestamp: new Date() });
+  try {
+    const docRef = await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
+    await setDoc(doc(db, `users/${user.uid}/aquariums/${docRef.id}/measurements`, 'init'), { init: true, timestamp: new Date() });
 
-  // Immediately update the dropdown for better UX
-  const opt = document.createElement('option');
-  opt.value = docRef.id;
-  opt.textContent = name;
-  aquariumSelect.appendChild(opt);
-  aquariumSelect.value = docRef.id;
-  currentAquariumId = docRef.id;
-  deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
+    const opt = document.createElement('option');
+    opt.value = docRef.id;
+    opt.textContent = name;
+    aquariumSelect.appendChild(opt);
+    aquariumSelect.value = docRef.id;
+    currentAquariumId = docRef.id;
+    deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
 
-  loadData(user.uid);
+    newAquariumInput.value = '';
+    newAquariumInput.classList.add('hidden');
+    saveAquariumBtn.classList.add('hidden');
+
+    loadData(user.uid);
+  } catch (err) {
+    alert('Failed to add aquarium: ' + err.message);
+  }
 });
 
 deleteAquariumBtn.addEventListener('click', async () => {
