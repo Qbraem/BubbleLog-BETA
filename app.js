@@ -525,7 +525,17 @@ addAquariumBtn.addEventListener('click', async () => {
   const docRef = await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
   // Initialize measurements subcollection so it exists immediately
   await setDoc(doc(db, `users/${user.uid}/aquariums/${docRef.id}/measurements`, 'init'), { init: true, timestamp: new Date() });
-  loadAquariums(user.uid, docRef.id);
+
+  // Immediately update the dropdown for better UX
+  const opt = document.createElement('option');
+  opt.value = docRef.id;
+  opt.textContent = name;
+  aquariumSelect.appendChild(opt);
+  aquariumSelect.value = docRef.id;
+  currentAquariumId = docRef.id;
+  deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
+
+  loadData(user.uid);
 });
 
 deleteAquariumBtn.addEventListener('click', async () => {
