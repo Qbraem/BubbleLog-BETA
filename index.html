@@ -205,6 +205,22 @@
       background-color: #1e40af !important;
     }
 
+    /* Styled dropdown for aquarium selection */
+    .aquarium-select {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: rgba(255, 255, 255, 0.7);
+      border: 1px solid #93c5fd;
+      border-radius: 9999px;
+      padding: 0.5rem 2rem 0.5rem 0.75rem;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e3a8a'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1rem;
+      font-weight: 500;
+      color: #1e3a8a;
+    }
+
     /* Bubble animation */
     .bubble {
       animation: rise 6s infinite ease-in;
@@ -383,7 +399,7 @@
       <h2 class="text-xl font-semibold mb-4 text-center text-blue-700">Your Measurements</h2>
       <div id="aquarium-controls" class="flex items-center gap-2 mb-4">
         <label for="aquarium-select" class="text-sm font-medium text-blue-900">Aquarium:</label>
-        <select id="aquarium-select" class="border border-blue-300 rounded px-2 py-1 flex-grow"></select>
+        <select id="aquarium-select" class="aquarium-select flex-grow"></select>
         <button id="add-aquarium" type="button" class="px-2 py-1 bg-blue-200 rounded-full text-blue-800">Add</button>
         <button id="delete-aquarium" type="button" class="px-2 py-1 bg-red-200 rounded-full text-red-800 hidden">Delete</button>
       </div>

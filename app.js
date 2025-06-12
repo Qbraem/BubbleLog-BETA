@@ -174,7 +174,7 @@ const aiStatusMeter = document.getElementById('ai-status-meter');
 
 let chartMain = null;
 
-async function loadAquariums(uid) {
+async function loadAquariums(uid, selectId = null) {
   const snapshot = await getDocs(collection(db, `users/${uid}/aquariums`));
   aquariumSelect.innerHTML = '';
   let firstId = null;
@@ -195,8 +195,9 @@ async function loadAquariums(uid) {
     aquariumSelect.appendChild(opt);
   }
 
-  aquariumSelect.value = firstId;
-  currentAquariumId = firstId;
+  const selected = selectId || firstId;
+  aquariumSelect.value = selected;
+  currentAquariumId = selected;
   deleteAquariumBtn.classList.toggle('hidden', aquariumSelect.options.length <= 1);
   loadData(uid);
 }
@@ -358,6 +359,7 @@ async function loadData(uid) {
   let firstMeasurement = null;
 
   querySnapshot.forEach((docSnapshot, index) => {
+    if (docSnapshot.data().init) return; // skip placeholder docs
     const d = sanitizeMeasurementData(docSnapshot.data());
     const docId = docSnapshot.id;
     const date = d.timestamp.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
@@ -520,8 +522,10 @@ addAquariumBtn.addEventListener('click', async () => {
   if (!user) return;
   const name = prompt('Aquarium name:');
   if (!name) return;
-  await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
-  loadAquariums(user.uid);
+  const docRef = await addDoc(collection(db, `users/${user.uid}/aquariums`), { name });
+  // Initialize measurements subcollection so it exists immediately
+  await setDoc(doc(db, `users/${user.uid}/aquariums/${docRef.id}/measurements`, 'init'), { init: true, timestamp: new Date() });
+  loadAquariums(user.uid, docRef.id);
 });
 
 deleteAquariumBtn.addEventListener('click', async () => {
