@@ -342,18 +342,19 @@
 
     #aquarium-menu {
       position: fixed;
-      bottom: 1rem;
+      bottom: 0;
       left: 0;
       width: 100%;
       display: flex;
       justify-content: center;
       gap: 0.5rem;
-      padding: 0.5rem 0;
+      padding: 1rem 0 1.5rem;
       background: var(--glass-bg);
       border-top: 1px solid var(--glass-border);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       z-index: 9999;
+      min-height: 4rem;
     }
 
     #aquarium-menu button {
