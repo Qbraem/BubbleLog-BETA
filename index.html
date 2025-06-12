@@ -75,7 +75,16 @@
       width: 100%;
       height: calc(100% + constant(safe-area-inset-top));
       height: calc(100% + env(safe-area-inset-top));
-      background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+      background: linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.3),
+        rgba(255, 127, 0, 0.3),
+        rgba(255, 255, 0, 0.3),
+        rgba(0, 255, 0, 0.3),
+        rgba(0, 0, 255, 0.3),
+        rgba(75, 0, 130, 0.3),
+        rgba(148, 0, 211, 0.3)
+      );
       z-index: -2;
     }
     #profile-container {
