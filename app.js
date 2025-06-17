@@ -179,6 +179,11 @@ const reminderList = document.getElementById('reminder-list');
 const noteList = document.getElementById("note-list");
 const noteForm = document.getElementById("note-form");
 const noteText = document.getElementById("note-text");
+const editModal = document.getElementById("note-edit-modal");
+const editNoteText = document.getElementById("edit-note-text");
+const editNoteSave = document.getElementById("edit-note-save");
+const editNoteCancel = document.getElementById("edit-note-cancel");
+let currentEditId = null;
 
 const testFrequencies = {
   ph: 7,
@@ -262,6 +267,26 @@ function updateAquariumMenuButtons(list = null) {
   });
 }
 
+if (editNoteCancel) {
+  editNoteCancel.addEventListener('click', () => {
+    editModal.classList.add('hidden');
+    currentEditId = null;
+  });
+}
+
+if (editNoteSave) {
+  editNoteSave.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user || !currentAquariumId || !currentEditId) return;
+    const newText = editNoteText.value.trim();
+    if (!newText) return;
+    await setDoc(doc(db, `users/${user.uid}/aquariums/${currentAquariumId}/notes`, currentEditId), { text: newText, timestamp: new Date() });
+    editModal.classList.add('hidden');
+    currentEditId = null;
+    loadNotes(user.uid);
+  });
+}
+
 function parseNumber(value) {
   if (value === undefined || value === null) return null;
   const cleaned = String(value)
@@ -293,6 +318,17 @@ function sanitizeMeasurementData(data) {
     co2: parseNumber(data.co2),
     timestamp: data.timestamp
   };
+}
+
+function convertMarkup(text) {
+  const esc = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  return esc
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
 }
 
 dataForm.addEventListener('submit', async (e) => {
@@ -620,7 +656,7 @@ async function loadNotes(uid) {
     const li = document.createElement("li");
     li.className = "flex justify-between items-center py-1";
     const span = document.createElement("span");
-    span.textContent = data.text;
+    span.innerHTML = convertMarkup(data.text);
     li.appendChild(span);
     const actions = document.createElement("span");
     actions.className = "flex items-center";
@@ -628,12 +664,10 @@ async function loadNotes(uid) {
     edit.className = "edit-btn";
     edit.title = "Edit note";
     edit.textContent = "✎";
-    edit.onclick = async () => {
-      const newText = prompt("Edit note", data.text);
-      if (newText !== null) {
-        await setDoc(doc(db, `users/${uid}/aquariums/${currentAquariumId}/notes`, docSnap.id), { text: newText, timestamp: new Date() });
-        loadNotes(uid);
-      }
+    edit.onclick = () => {
+      currentEditId = docSnap.id;
+      editNoteText.value = data.text;
+      if (editModal) editModal.classList.remove('hidden');
     };
     const del = document.createElement("span");
     del.className = "delete-btn";
