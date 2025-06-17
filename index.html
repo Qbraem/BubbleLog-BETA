@@ -568,9 +568,18 @@
           <h3 class="text-lg font-semibold mb-2 text-blue-800">Notes</h3>
           <ul id="note-list" class="divide-y divide-blue-200 mb-2"></ul>
           <form id="note-form" class="flex gap-2 mt-2">
-            <input type="text" id="note-text" class="flex-grow border rounded-full px-2 py-1 text-sm" placeholder="Add a note" />
+            <textarea id="note-text" rows="3" class="flex-grow border rounded-lg px-2 py-1 text-sm" placeholder="Add a note"></textarea>
             <button type="submit" class="px-3 py-1 bg-blue-200 rounded-full text-blue-800 hover:bg-blue-300">Save</button>
           </form>
+          <div id="note-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center" style="z-index:10000;">
+            <div class="bg-white p-4 rounded-lg w-80">
+              <textarea id="edit-note-text" rows="4" class="w-full border rounded mb-2 p-2 text-sm"></textarea>
+              <div class="flex justify-end gap-2">
+                <button id="edit-note-cancel" type="button" class="px-3 py-1 bg-gray-200 rounded-full">Cancel</button>
+                <button id="edit-note-save" type="button" class="px-3 py-1 bg-blue-200 rounded-full text-blue-800 hover:bg-blue-300">Save</button>
+              </div>
+            </div>
+          </div>
         </div>
 
 
