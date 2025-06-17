@@ -176,6 +176,9 @@ const aiStatusArrow = document.getElementById('ai-status-arrow');
 const aiStatusIcon = document.getElementById('ai-status-icon');
 const aiStatusMeter = document.getElementById('ai-status-meter');
 const reminderList = document.getElementById('reminder-list');
+const noteList = document.getElementById("note-list");
+const noteForm = document.getElementById("note-form");
+const noteText = document.getElementById("note-text");
 
 const testFrequencies = {
   ph: 7,
@@ -399,6 +402,7 @@ function generateAdvice(ph, gh, kh, chlorine, nitrite, nitrate, co2) {
 async function loadData(uid) {
   historyList.innerHTML = '';
   if (!currentAquariumId) return;
+  loadNotes(uid);
   const q = query(collection(db, `users/${uid}/aquariums/${currentAquariumId}/measurements`), orderBy('timestamp', 'desc'));
   const querySnapshot = await getDocs(q);
 
@@ -604,6 +608,61 @@ function updateReminders(measurements) {
     li.textContent = text;
     reminderList.appendChild(li);
   }
+}
+async function loadNotes(uid) {
+  if (!noteList) return;
+  noteList.innerHTML = "";
+  if (!currentAquariumId) return;
+  const q = query(collection(db, `users/${uid}/aquariums/${currentAquariumId}/notes`), orderBy("timestamp", "desc"));
+  const snap = await getDocs(q);
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const li = document.createElement("li");
+    li.className = "flex justify-between items-center py-1";
+    const span = document.createElement("span");
+    span.textContent = data.text;
+    li.appendChild(span);
+    const actions = document.createElement("span");
+    actions.className = "flex items-center";
+    const edit = document.createElement("span");
+    edit.className = "edit-btn";
+    edit.title = "Edit note";
+    edit.textContent = "✎";
+    edit.onclick = async () => {
+      const newText = prompt("Edit note", data.text);
+      if (newText !== null) {
+        await setDoc(doc(db, `users/${uid}/aquariums/${currentAquariumId}/notes`, docSnap.id), { text: newText, timestamp: new Date() });
+        loadNotes(uid);
+      }
+    };
+    const del = document.createElement("span");
+    del.className = "delete-btn";
+    del.title = "Delete note";
+    del.textContent = "✖";
+    del.onclick = async () => {
+      if (confirm("Delete this note?")) {
+        await deleteDoc(doc(db, `users/${uid}/aquariums/${currentAquariumId}/notes`, docSnap.id));
+        loadNotes(uid);
+      }
+    };
+    actions.appendChild(edit);
+    actions.appendChild(del);
+    li.appendChild(actions);
+    noteList.appendChild(li);
+  });
+}
+
+if (noteForm) {
+  noteForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user || !currentAquariumId) return;
+    const text = noteText.value.trim();
+    if (!text) return;
+    await addDoc(collection(db, `users/${user.uid}/aquariums/${currentAquariumId}/notes`), { text, timestamp: new Date() });
+    noteText.value = "";
+    loadNotes(user.uid);
+  });
 }
 
 
