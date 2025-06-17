@@ -206,6 +206,7 @@ const testLabels = {
 };
 
 let chartMain = null;
+let chartNitro = null;
 
 async function loadAquariums(uid, selectId = null) {
   const snapshot = await getDocs(collection(db, `users/${uid}/aquariums`));
@@ -534,31 +535,55 @@ async function loadData(uid) {
     aiStatusIcon.className = 'text-gray-500 my-3 text-4xl';
   }
 
-  updateOrCreateChart(labels, [
+  labels.reverse();
+  phData.reverse();
+  ghData.reverse();
+  khData.reverse();
+  chlorineData.reverse();
+  nitriteData.reverse();
+  nitrateData.reverse();
+  fe2Data.reverse();
+  co2Data.reverse();
+
+  chartMain = updateOrCreateChart('chart-main', chartMain, labels, [
     { label: 'pH', data: phData, color: 'rgba(59, 130, 246, 1)' },
     { label: 'GH (°dH)', data: ghData, color: 'rgba(96, 165, 250, 1)' },
     { label: 'KH (°dH)', data: khData, color: 'rgba(251, 113, 133, 1)' },
     { label: 'Chlorine (mg/L)', data: chlorineData, color: 'rgba(34, 197, 94, 1)' },
-    { label: 'Nitrite (mg/L)', data: nitriteData, color: 'rgba(234, 179, 8, 1)' },
-    { label: 'Nitrate (mg/L)', data: nitrateData, color: 'rgba(249, 115, 22, 1)' },
     { label: 'Fe2 (mg/L)', data: fe2Data, color: 'rgba(139, 92, 246, 1)' },
     { label: 'CO₂ (mg/L)', data: co2Data, color: 'rgba(16, 185, 129, 1)' }
+  ]);
+
+  chartNitro = updateOrCreateChart('chart-nox', chartNitro, labels, [
+    { label: 'Nitrite (mg/L)', data: nitriteData, color: 'rgba(234, 179, 8, 1)' },
+    { label: 'Nitrate (mg/L)', data: nitrateData, color: 'rgba(249, 115, 22, 1)' }
   ]);
 
   updateReminders(reminderData);
 }
 
-function updateOrCreateChart(labels, datasets) {
-  const ctx = document.getElementById('chart').getContext('2d');
-  let chartInstance = chartMain;
+function updateOrCreateChart(chartId, chartInstance, labels, datasets) {
+  const ctx = document.getElementById(chartId).getContext('2d');
 
   if (chartInstance) {
     chartInstance.data.labels = labels;
     datasets.forEach((ds, idx) => {
       if (chartInstance.data.datasets[idx]) {
+        chartInstance.data.datasets[idx].label = ds.label;
         chartInstance.data.datasets[idx].data = ds.data;
+        chartInstance.data.datasets[idx].borderColor = ds.color;
+        chartInstance.data.datasets[idx].backgroundColor = ds.color + '33';
+      } else {
+        chartInstance.data.datasets[idx] = {
+          label: ds.label,
+          data: ds.data,
+          borderColor: ds.color,
+          backgroundColor: ds.color + '33',
+          tension: 0.4
+        };
       }
     });
+    chartInstance.data.datasets.splice(datasets.length);
     chartInstance.update();
   } else {
     chartInstance = new Chart(ctx, {
@@ -581,8 +606,9 @@ function updateOrCreateChart(labels, datasets) {
         }
       }
     });
-    chartMain = chartInstance;
+    return chartInstance;
   }
+  return chartInstance;
 }
 
 
