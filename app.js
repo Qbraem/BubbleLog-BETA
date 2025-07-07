@@ -48,6 +48,8 @@ const aquariumSelect = document.getElementById('aquarium-select');
 const addAquariumBtn = document.getElementById('add-aquarium');
 const deleteAquariumBtn = document.getElementById('delete-aquarium');
 const aquariumMenu = document.getElementById('aquarium-menu');
+const levelLabel = document.getElementById('level-label');
+const xpProgressInner = document.querySelector('#xp-progress > div');
 
 let isRegister = false;
 let currentUserData = null;
@@ -560,6 +562,7 @@ async function loadData(uid) {
   ]);
 
   updateReminders(reminderData);
+  updateGamification(reminderData);
 }
 
 function updateOrCreateChart(chartId, chartInstance, labels, datasets) {
@@ -670,6 +673,49 @@ function updateReminders(measurements) {
     li.textContent = text;
     reminderList.appendChild(li);
   }
+}
+
+function calculateStreak(measurements) {
+  if (!measurements || measurements.length === 0) return 0;
+  const sorted = measurements.slice().sort((a, b) => {
+    const ta = a.timestamp.toDate ? a.timestamp.toDate() : new Date(a.timestamp);
+    const tb = b.timestamp.toDate ? b.timestamp.toDate() : new Date(b.timestamp);
+    return tb - ta;
+  });
+  let streak = 1;
+  let prev = new Date(sorted[0].timestamp.toDate ? sorted[0].timestamp.toDate() : sorted[0].timestamp);
+  prev.setHours(0, 0, 0, 0);
+  for (let i = 1; i < sorted.length; i++) {
+    const cur = new Date(sorted[i].timestamp.toDate ? sorted[i].timestamp.toDate() : sorted[i].timestamp);
+    cur.setHours(0, 0, 0, 0);
+    const diff = (prev - cur) / (1000 * 60 * 60 * 24);
+    if (diff >= 1 && diff < 2) {
+      streak++;
+      prev = cur;
+    } else if (diff >= 2) {
+      break;
+    }
+  }
+  return streak;
+}
+
+function updateGamification(measurements) {
+  if (!levelLabel || !xpProgressInner) return;
+  const xp = measurements.length;
+  const streak = calculateStreak(measurements);
+  const levels = ['Newbie', 'Bronze', 'Silver', 'Gold'];
+  const thresholds = [0, 7, 14, 30];
+  let levelIndex = 0;
+  for (let i = thresholds.length - 1; i >= 0; i--) {
+    if (xp >= thresholds[i] || streak >= thresholds[i]) {
+      levelIndex = i;
+      break;
+    }
+  }
+  levelLabel.textContent = `${levels[levelIndex]} - ${streak} day streak`;
+  const nextThreshold = thresholds[Math.min(levelIndex + 1, thresholds.length - 1)];
+  const progress = levelIndex === thresholds.length - 1 ? 100 : Math.min(100, (xp / nextThreshold) * 100);
+  xpProgressInner.style.width = progress + '%';
 }
 async function loadNotes(uid) {
   if (!noteList) return;
